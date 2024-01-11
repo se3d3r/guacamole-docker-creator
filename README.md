@@ -1,4 +1,4 @@
-## Setting up a Guacamole Jump-Server with Docker and MySQL
+## Setting up a Apache Guacamole Jump-Server with Docker and MySQL
 
 ## Requirements
 docker & docker-compose
