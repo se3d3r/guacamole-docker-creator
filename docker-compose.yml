@@ -1,0 +1,68 @@
+# Author: se3d3r
+# Description: Sets up a Guacamole server and MySQL Database via Docker
+
+# Requirements: 1. The following environment variables must be set: MYSQL_ROOT_PASSWORD , MYSQL_USER_PASSWORD
+#               2. Execute the following commands to set up the data paths:
+#                   sudo mkdir -p /var/guacamole/recordings
+#                   sudo mkdir -p /var/guacamole/data
+#                   sudo chown -R 1000:1001 /var/guacamole/recordings
+#                   sudo chmod -R 2750 /var/guacamole/recordings
+#               3. If you don't know what to do, just start setup.sh
+
+version: '3'
+
+networks:
+  guacamole_network:
+    driver: bridge
+
+# services
+services:
+  # guacd
+  guacd:
+    container_name: main-guacd
+    image: guacamole/guacd:1.5.4
+    restart: always
+    networks:
+    - guacamole_network
+    volumes:
+    - /var/guacamole/recordings:/recordings
+
+  # mysql 
+  mysql:
+    container_name: main-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_PASSWORD: '${MYSQL_USER_PASSWORD}'
+      MYSQL_USER: guacamole_user
+    image: mysql:8.2.0
+    restart: always
+    networks:
+    - guacamole_network
+    volumes:
+    - /var/guacamole/data:/var/lib/mysql
+    - ./db_scripts:/docker-entrypoint-initdb.d 
+
+  # guacamole
+  guacamole:
+    container_name: main-guacamole
+    depends_on:
+    - guacd
+    - mysql
+    environment:
+      GUACD_HOSTNAME: guacd
+      MYSQL_HOSTNAME: mysql
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: '${MYSQL_USER_PASSWORD}'
+      RECORDING_SEARCH_PATH: "/recordings"
+    image: guacamole/guacamole:1.5.4
+    ports:
+    - "8080:8080"
+    links:
+    - guacd
+    networks:
+    - guacamole_network
+    restart: always
+    volumes:
+    - /var/guacamole/recordings:/recordings
