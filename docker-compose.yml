@@ -41,7 +41,7 @@ services:
     - guacamole_network
     volumes:
     - /var/guacamole/data:/var/lib/mysql
-    - ./db_scripts:/docker-entrypoint-initdb.d 
+    - ./:/docker-entrypoint-initdb.d 
 
   # guacamole
   guacamole:
